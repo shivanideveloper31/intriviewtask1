@@ -150,7 +150,7 @@ class _ItemsState extends State<Items> {
               child: ListView.builder(
                 itemCount: homeController.getFoodDetails.length,
                 itemBuilder: (context, index) {
-                  return ListItems(isVeg: homeController.getFoodDetails[index]["isVeg"],itemName: homeController.getFoodDetails[index]["foodName"],itemDescription: homeController.getFoodDetails[index]["foodDescription"],itemImage: homeController.getFoodDetails[index]["foodImg"],kclValue: homeController.getFoodDetails[index]["foodCal"],sarValue: homeController.getFoodDetails[index]["foodPrice"],);
+                  return ListItems(foodId: homeController.getFoodDetails[index]["Id"],isVeg: homeController.getFoodDetails[index]["isVeg"],itemName: homeController.getFoodDetails[index]["foodName"],itemDescription: homeController.getFoodDetails[index]["foodDescription"],itemImage: homeController.getFoodDetails[index]["foodImg"],kclValue: homeController.getFoodDetails[index]["foodCal"],sarValue: homeController.getFoodDetails[index]["foodPrice"],);
                 },
               ),
             ),
@@ -162,12 +162,12 @@ class _ItemsState extends State<Items> {
                 padding: EdgeInsets.symmetric(horizontal: 10.0),
                 child: Row(
                   children: [
-                    Text("Total amount:- 200",style: TextStyle(color: Colors.white),),
-                    Spacer(),
+                    const Text("Total amount:- 200",style: TextStyle(color: Colors.white),),
+                    const Spacer(),
                     Container(
                       height: 45,width: 150,
                       decoration: const BoxDecoration(color: Colors.white,borderRadius: BorderRadius.all(Radius.circular(50))),
-                    child:  Center(child: Text("Order",style: TextStyle(color: Colors.green,fontSize: 20,fontWeight: FontWeight.w800),)),
+                    child:  const Center(child: Text("Order",style: TextStyle(color: Colors.green,fontSize: 20,fontWeight: FontWeight.w800),)),
                     ),
                   ],
                 ),
@@ -190,15 +190,17 @@ class ListItems extends StatefulWidget {
   String kclValue;
   String itemDescription;
   String itemImage;
+  String foodId;
   bool isVeg;
 
-   ListItems({super.key,required this.itemName,required this.sarValue,required this.kclValue,required this.itemDescription,required this.itemImage,required this.isVeg});
+   ListItems({super.key,required this.foodId,required this.itemName,required this.sarValue,required this.kclValue,required this.itemDescription,required this.itemImage,required this.isVeg});
 
   @override
   State<ListItems> createState() => _ListItemsState();
 }
 
 class _ListItemsState extends State<ListItems> {
+  HomeController homeController=Get.put(HomeController());
 
   int foodQuantity=0;
   @override
@@ -286,9 +288,29 @@ class _ListItemsState extends State<ListItems> {
 
 
                                       foodQuantity++;
-                                      setState(() {
 
-                                      });
+                                   //  Map tempStoreData= homeController.orderDetail.firstWhere((p0) => p0["foodId"]=='FoodId1');
+
+                                    // print(tempStoreData);
+                                     if(homeController.orderDetail.isNotEmpty&&homeController.orderDetail.firstWhere((p0) => p0["foodId"]==widget.foodId).containsValue("FoodId1")) {
+                                        homeController.orderDetail.removeAt(homeController.orderDetail.indexWhere((element) => "foodId"==widget.foodId));
+                                         homeController.orderDetail.add({
+                                          "foodId": widget.foodId,
+                                          "quantity": foodQuantity,
+                                        });
+                                        setState(() {
+
+                                        });
+                                      }else{
+                                        homeController.orderDetail.add({
+                                          "foodId": widget.foodId,
+                                          "quantity": foodQuantity,
+                                        });
+                                        setState(() {
+
+                                        });
+                                      }
+                                      print( homeController.orderDetail);
 
 
                                   },

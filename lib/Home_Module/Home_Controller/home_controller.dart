@@ -10,6 +10,9 @@ class HomeController extends GetxController{
 
 RxList<QueryDocumentSnapshot> getFoodDetails=<QueryDocumentSnapshot>[].obs;
 
+
+RxList<Map> orderDetail=<Map>[].obs;
+
   void addDataToFirebase()async{
   var getFoodDetailsTemp= await FirebaseFirestore.instance.collection("FoodDetails").get();
 
