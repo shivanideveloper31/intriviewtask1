@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
 import 'package:interview_task1/Home_Module/Home_Controller/home_controller.dart';
+import 'package:interview_task1/food_summary.dart';
 
 
 
@@ -132,10 +133,10 @@ class _ItemsState extends State<Items> {
 
 
   HomeController homeController=Get.put(HomeController());
-
+int quentity=0;
   @override
   void initState() {
-    homeController.addDataToFirebase();
+    homeController.getDataToFirebase();
     // TODO: implement initState
     super.initState();
   }
@@ -150,7 +151,7 @@ class _ItemsState extends State<Items> {
               child: ListView.builder(
                 itemCount: homeController.getFoodDetails.length,
                 itemBuilder: (context, index) {
-                  return ListItems(foodId: homeController.getFoodDetails[index]["Id"],isVeg: homeController.getFoodDetails[index]["isVeg"],itemName: homeController.getFoodDetails[index]["foodName"],itemDescription: homeController.getFoodDetails[index]["foodDescription"],itemImage: homeController.getFoodDetails[index]["foodImg"],kclValue: homeController.getFoodDetails[index]["foodCal"],sarValue: homeController.getFoodDetails[index]["foodPrice"],);
+                  return ListItems(foodId: homeController.getFoodDetails[index]["Id"],isVeg: homeController.getFoodDetails[index]["isVeg"],itemName: homeController.getFoodDetails[index]["foodName"],itemDescription: homeController.getFoodDetails[index]["foodDescription"],itemImage: homeController.getFoodDetails[index]["foodImg"],kclValue: homeController.getFoodDetails[index]["foodCal"],sarValue: homeController.getFoodDetails[index]["foodPrice"], quentity: quentity,);
                 },
               ),
             ),
@@ -162,12 +163,18 @@ class _ItemsState extends State<Items> {
                 padding: EdgeInsets.symmetric(horizontal: 10.0),
                 child: Row(
                   children: [
-                    const Text("Total amount:- 200",style: TextStyle(color: Colors.white),),
+                     Text("Total amount:- ${homeController.totalAmount.toStringAsFixed(2)}",style: TextStyle(color: Colors.white),),
                     const Spacer(),
-                    Container(
-                      height: 45,width: 150,
-                      decoration: const BoxDecoration(color: Colors.white,borderRadius: BorderRadius.all(Radius.circular(50))),
-                    child:  const Center(child: Text("Order",style: TextStyle(color: Colors.green,fontSize: 20,fontWeight: FontWeight.w800),)),
+                    InkWell(
+                      onTap: () async {
+                       await Get.to(const OrderSummary());
+                        quentity=0;
+                      },
+                      child: Container(
+                        height: 45,width: 150,
+                        decoration: const BoxDecoration(color: Colors.white,borderRadius: BorderRadius.all(Radius.circular(50))),
+                      child:  const Center(child: Text("Order",style: TextStyle(color: Colors.green,fontSize: 20,fontWeight: FontWeight.w800),)),
+                      ),
                     ),
                   ],
                 ),
@@ -192,8 +199,9 @@ class ListItems extends StatefulWidget {
   String itemImage;
   String foodId;
   bool isVeg;
+  int quentity;
 
-   ListItems({super.key,required this.foodId,required this.itemName,required this.sarValue,required this.kclValue,required this.itemDescription,required this.itemImage,required this.isVeg});
+   ListItems({super.key,required this.quentity,required this.foodId,required this.itemName,required this.sarValue,required this.kclValue,required this.itemDescription,required this.itemImage,required this.isVeg});
 
   @override
   State<ListItems> createState() => _ListItemsState();
@@ -203,6 +211,22 @@ class _ListItemsState extends State<ListItems> {
   HomeController homeController=Get.put(HomeController());
 
   int foodQuantity=0;
+@override
+  void initState() {
+  foodQuantity=widget.quentity;
+  setState(() {
+
+  });
+  // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    foodQuantity=0;
+    // TODO: implement dispose
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -272,6 +296,7 @@ class _ListItemsState extends State<ListItems> {
                                       if (foodQuantity >
                                           0) {
                                         foodQuantity--;
+                                        homeController.totalAmount.value=homeController.totalAmount.value-widget.sarValue;
                                         setState(() {
 
                                         });
@@ -292,24 +317,36 @@ class _ListItemsState extends State<ListItems> {
                                    //  Map tempStoreData= homeController.orderDetail.firstWhere((p0) => p0["foodId"]=='FoodId1');
 
                                     // print(tempStoreData);
-                                     if(homeController.orderDetail.isNotEmpty&&homeController.orderDetail.firstWhere((p0) => p0["foodId"]==widget.foodId).containsValue("FoodId1")) {
-                                        homeController.orderDetail.removeAt(homeController.orderDetail.indexWhere((element) => "foodId"==widget.foodId));
-                                         homeController.orderDetail.add({
-                                          "foodId": widget.foodId,
-                                          "quantity": foodQuantity,
-                                        });
-                                        setState(() {
+                                     //print(homeController.orderDetail[(homeController.orderDetail.indexWhere((element) => "foodId"==widget.foodId))+1]["foodId"]);
+                                       if(homeController.orderDetail.isNotEmpty&&homeController.orderDetail.where((p0) => p0["foodId"]==widget.foodId).isNotEmpty) {
+                                          homeController.orderDetail.removeAt(homeController.orderDetail.indexWhere((element) => "foodId"==widget.foodId)+1);
+                                           homeController.orderDetail.add({
+                                             "foodId": widget.foodId,
+                                             "quantity": foodQuantity,
+                                             "foodCal":widget.kclValue,
+                                             "foodDescription":widget.itemDescription,
+                                             "foodName":widget.itemName,
+                                             "foodPrice":widget.sarValue,
+                                             "isVeg":widget.isVeg,
+                                          });
+                                          setState(() {
 
-                                        });
-                                      }else{
-                                        homeController.orderDetail.add({
-                                          "foodId": widget.foodId,
-                                          "quantity": foodQuantity,
-                                        });
-                                        setState(() {
+                                          });
+                                        }else{
+                                          homeController.orderDetail.add({
+                                            "foodId": widget.foodId,
+                                            "quantity": foodQuantity,
+                                            "foodCal":widget.kclValue,
+                                            "foodDescription":widget.itemDescription,
+                                            "foodName":widget.itemName,
+                                            "foodPrice":widget.sarValue,
+                                            "isVeg":widget.isVeg,
+                                          });
+                                          setState(() {
 
-                                        });
-                                      }
+                                          });
+                                        }
+                                      homeController.totalAmount.value=homeController.totalAmount.value+widget.sarValue;
                                       print( homeController.orderDetail);
 
 
